@@ -71,7 +71,39 @@ fn main() {
 	let libs = String::from_utf8(libs.stdout)
 		.expect("`wx-config --libs all` outputted invalid UTF-8");
 
-	println!("cargo:rustc-flags={}", libs);
+	info!("`wx-config` libs: {}", libs);
+
+	let libs = shlex::split(libs.as_str())
+		.expect("Couldn't split lib flags");
+
+	info!("Split libs: {:?}", libs);
+
+	let mut link_search = vec![];
+	let mut link_libs = vec![];
+
+	for flag in libs.into_iter() {
+		let short = &flag[..2];
+		let after = &flag[2..];
+
+		if short == "-L" {
+			link_search.push(String::from(after));
+		} else if short == "-l" {
+			link_libs.push(String::from(after));
+		} else {
+			info!("Ignoring flag {}", flag);
+		}
+	}
+
+	info!("Link search paths: {:?}", link_search);
+	info!("Link libs: {:?}", link_libs);
+
+	for search in link_search.into_iter() {
+		println!("cargo:rustc-link-search={}", search);
+	}
+
+	for lib in link_libs.into_iter() {
+		println!("cargo:rustc-link-lib={}", lib);
+	}
 
 	info!("Generating bindings now");
 
