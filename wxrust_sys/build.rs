@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use log::{info, LevelFilter};
 
@@ -14,6 +14,7 @@ fn main() {
 		.unwrap_or(String::from("wx-config"));
 
 	Command::new(wxconfig_path.clone())
+		.stderr(Stdio::null())
 		.status()
 		.expect("Ensure you have `wx-config` in your PATH, or specify the WXCONFIG environment variable!");
 
